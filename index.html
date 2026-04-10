@@ -174,7 +174,7 @@
             updateHeader();
         }
 
-        function renderCalendar() {
+                function renderCalendar() {
             updateDisplayBg();
             const grid = document.getElementById('dateGrid'), layer = document.getElementById('event-layer');
             grid.innerHTML = ''; layer.innerHTML = '';
@@ -182,11 +182,32 @@
             const first = new Date(y, m, 1).getDay(), dInM = new Date(y, m + 1, 0).getDate();
             for (let i = 0; i < first; i++) grid.innerHTML += '<div class="empty-cell"></div>';
             let dateMap = {};
+            
+            // 修正后的农历处理逻辑
             for (let d = 1; d <= dInM; d++) {
-                const l = new Intl.DateTimeFormat('zh-u-ca-chinese',{day:'numeric'}).format(new Date(y,m,d));
-                grid.innerHTML += `<div class="cell" onclick="handleCellClick(${d})" id="cell-${d}"><div class="date-row"><span class="s">${d}</span><span class="l">${l}</span></div></div>`;
+                const dateObj = new Date(y, m, d);
+                // 关键点：使用 chinese 历法并提取日
+                let lunarDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {day:'numeric'}).format(dateObj);
+                
+                // 处理“1日”变“初一”的逻辑
+                if (lunarDay === '1日') {
+                    // 如果是初一，通常显示农历月份
+                    lunarDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {month:'long'}).format(dateObj);
+                } else {
+                    // 将 2日, 11日 这种格式转换为 初二, 十一
+                    const num = parseInt(lunarDay);
+                    const units = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
+                    if (num <= 10) lunarDay = "初" + units[num];
+                    else if (num < 20) lunarDay = "十" + units[num % 10];
+                    else if (num === 20) lunarDay = "二十";
+                    else if (num < 30) lunarDay = "廿" + units[num % 10];
+                    else if (num === 30) lunarDay = "三十";
+                }
+
+                grid.innerHTML += `<div class="cell" onclick="handleCellClick(${d})" id="cell-${d}"><div class="date-row"><span class="s">${d}</span><span class="l">${lunarDay}</span></div></div>`;
                 dateMap[d] = { row: Math.floor((first+d-1)/7)+1, col: ((first+d-1)%7)+1 };
             }
+
             events.forEach(ev => {
                 if(ev.year!==y || ev.month!==m) return;
                 for(let r=dateMap[ev.start].row; r<=dateMap[ev.end].row; r++){
@@ -201,6 +222,7 @@
             });
             updateHeader();
         }
+
 
         function handleCellClick(d) {
             if (selection.length === 0) {
