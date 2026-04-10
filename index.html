@@ -8,7 +8,6 @@
         body { margin: 0; padding: 20px 8px; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; box-sizing: border-box; }
         .calendar-box { background: white; width: calc(100vw - 16px); max-width: 1000px; padding: 12px 8px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
         
-        /* 保持 0.82 透明度 */
         .has-bg .calendar-box { background: rgba(255, 255, 255, 0.82); }
         .has-bg .cell, .has-bg .empty-cell { background: rgba(255, 255, 255, 0.2) !important; border-color: rgba(238, 238, 238, 0.4) !important; }
         .has-bg .year-month-card { background: rgba(255, 255, 255, 0.4); border-color: rgba(0, 0, 0, 0.05); }
@@ -25,7 +24,8 @@
         .s { font-size: 14px; color: #2d3748; font-weight: bold; }
         .l { font-size: 9px; color: #a0aec0; transform: scale(0.85); transform-origin: left; }
         #event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 90px; }
-        .event-bar { position: relative; font-size: 11px; padding: 4px; border-radius: 4px; margin: 22px 2px 0 2px; z-index: 10; pointer-events: auto; cursor: pointer; display: flex !important; flex-direction: column; overflow: hidden; box-sizing: border-box; }
+        
+        .event-bar { position: relative; font-size: 11px; padding: 4px; border-radius: 4px; margin: 22px 2px 0 2px; z-index: 10; pointer-events: auto; cursor: pointer; display: flex !important; flex-direction: column; overflow: hidden; box-sizing: border-box; line-height: 1.2; }
         
         #yearView { display: none; padding: 5px; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; box-sizing: border-box; }
         .year-month-card { border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px; cursor: pointer; background: #fafafa; box-sizing: border-box; }
@@ -33,8 +33,8 @@
         .ym-day { font-size: 8px; text-align: center; color: #a0aec0; height: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
         .dot-mark { width: 2.5px; height: 2.5px; background: #4fd1c5; border-radius: 50%; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); }
 
-        /* 版权文字样式 */
-        .footer-copy { text-align: center; font-size: 10px; color: #cbd5e0; margin-top: 15px; padding-bottom: 5px; letter-spacing: 1px; }
+        .footer-copy { text-align: center; font-size: 10px; color: #a0aec0; margin-top: 15px; padding-bottom: 5px; letter-spacing: 1px; }
+        .has-bg .footer-copy { color: #4a5568; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
 
         #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
         #editor-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 12px; border-radius: 12px; z-index: 1000; width: 92%; max-width: 420px; box-sizing: border-box; }
@@ -42,7 +42,26 @@
         .tool-btn { background: #f8fafc; border: 1px solid #e2e8f0; min-width: 28px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
         .dot-box { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
         .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.05); cursor: pointer; }
-        #editor-field { width: 100%; min-height: 120px; max-height: 300px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 14px; outline: none; overflow-y: auto; display: flex; flex-direction: column; }
+        
+        /* --- 核心修复部分：防止编辑框超出底框 --- */
+        #editor-field { 
+            width: 100%; 
+            max-width: 100%; /* 确保不超出父容器 */
+            min-height: 120px; 
+            max-height: 300px; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 8px; 
+            padding: 10px; 
+            margin: 8px 0; 
+            font-size: 14px; 
+            outline: none; 
+            overflow-y: auto; 
+            display: flex; 
+            flex-direction: column; 
+            background: #fff; 
+            box-sizing: border-box; /* 极关键：确保 padding 不增加宽度 */
+        }
+        
         .date-picker-row { font-size: 12px; color: #64748b; margin-bottom: 8px; background: #f1f5f9; padding: 6px; border-radius: 6px; }
         .modal-btns { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #eee; padding-top: 10px; }
         .save-btn { background: #4fd1c5; color: white; border: none; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
@@ -51,22 +70,6 @@
         
         .blur-slider-box { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
         #blurRange { flex: 1; cursor: pointer; height: 4px; }
- /* 基础颜色：没有背景时，显示淡淡的灰色 */
-.footer-copy { 
-    text-align: center; 
-    font-size: 10px; 
-    color: #a0aec0; 
-    margin-top: 15px; 
-    padding-bottom: 5px; 
-    letter-spacing: 1px; 
-}
-
-/* 自适应：当你有背景图时，文字颜色会自动变深，以防看不清 */
-/* 你也可以把这里的颜色改成 #ffffff (纯白)，如果你的背景图很暗 */
-.has-bg .footer-copy { 
-    color: #4a5568; 
-    text-shadow: 0 0 5px rgba(255,255,255,0.5); /* 增加一点点白色背光，更清晰 */
-}
     </style>
 </head>
 <body id="body-tag">
@@ -79,14 +82,13 @@
             <button class="tool-btn" onmousedown="exec(event,'italic')">I</button>
             <button class="tool-btn" onmousedown="exec(event,'underline')">U</button>
             <div style="width:1px;height:14px;background:#ddd"></div>
-            <div class="dot-box"><div class="dot" style="background:#000" onmousedown="execColor(event,'#000')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#e53e3e" onmousedown="execColor(event,'#e53e3e')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#3182ce" onmousedown="execColor(event,'#3182ce')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#38a169" onmousedown="execColor(event,'#38a169')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#805ad5" onmousedown="execColor(event,'#805ad5')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#ed8936" onmousedown="execColor(event,'#ed8936')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#718096" onmousedown="execColor(event,'#718096')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#fff;border:1px solid #ddd" onmousedown="execColor(event,'#fff')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#000" onmousedown="setStyle(event,'color','#000')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#e53e3e" onmousedown="setStyle(event,'color','#e53e3e')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#3182ce" onmousedown="setStyle(event,'color','#3182ce')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#38a169" onmousedown="setStyle(event,'color','#38a169')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#805ad5" onmousedown="setStyle(event,'color','#805ad5')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#ed8936" onmousedown="setStyle(event,'color','#ed8936')"></div></div>
+            <div class="dot-box"><div class="dot" style="background:#fff;border:1px solid #ddd" onmousedown="setStyle(event,'color','#fff')"></div></div>
         </div>
         <div class="tool-group">
             <button class="tool-btn" onmousedown="setStyle(event,'fontSize','14px')">小</button>
@@ -190,18 +192,16 @@
             updateHeader();
         }
 
-                        function renderCalendar() {
+        function renderCalendar() {
             updateDisplayBg();
             const grid = document.getElementById('dateGrid'), layer = document.getElementById('event-layer');
             grid.innerHTML = ''; layer.innerHTML = '';
             const y = currentDate.getFullYear(), m = currentDate.getMonth();
             const first = new Date(y, m, 1).getDay(), dInM = new Date(y, m + 1, 0).getDate();
             
-            // 1. 生成月初的空白格子
             for (let i = 0; i < first; i++) grid.innerHTML += '<div class="empty-cell"></div>';
             
             let dateMap = {};
-            // 2. 生成当月的日期格子
             for (let d = 1; d <= dInM; d++) {
                 const dateObj = new Date(y, m, d);
                 let lunarDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {day:'numeric'}).format(dateObj);
@@ -222,14 +222,12 @@
                 dateMap[d] = { row: Math.floor((first+d-1)/7)+1, col: ((first+d-1)%7)+1 };
             }
 
-            // 3. 【核心修正】生成月末的空白格子，补齐最后一行
             const totalCellsSoFar = first + dInM;
             const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
             for (let i = 0; i < remainingCells; i++) {
                 grid.innerHTML += '<div class="empty-cell"></div>';
             }
 
-            // 4. 渲染记录条
             events.forEach(ev => {
                 if(ev.year!==y || ev.month!==m) return;
                 for(let r=dateMap[ev.start].row; r<=dateMap[ev.end].row; r++){
@@ -244,8 +242,6 @@
             });
             updateHeader();
         }
-
-
 
         function handleCellClick(d) {
             if (selection.length === 0) {
@@ -283,9 +279,22 @@
             localStorage.setItem('my_calendar_events', JSON.stringify(events)); closeModal(); renderCalendar();
         }
 
-        function exec(e,c){ e.preventDefault(); document.execCommand(c,false,null); }
-        function execColor(e,v){ e.preventDefault(); document.execCommand('foreColor',false,v); }
-        function setStyle(e,p,v){ e.preventDefault(); const sel=window.getSelection(); if(!sel.rangeCount)return; const r=sel.getRangeAt(0), s=document.createElement('span'); s.style[p]=v; s.style.lineHeight="1.1"; s.appendChild(r.extractContents()); r.insertNode(s); }
+        function setStyle(e, p, v) {
+            if (e) e.preventDefault(); 
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.toString().length === 0) return;
+            const range = sel.getRangeAt(0);
+            const span = document.createElement('span');
+            span.style[p] = v;
+            span.style.lineHeight = "1.2";
+            try {
+                span.appendChild(range.extractContents());
+                range.insertNode(span);
+                sel.removeAllRanges();
+            } catch (err) { console.error(err); }
+        }
+
+        function exec(e, c) { e.preventDefault(); document.execCommand(c, false, null); }
         function setAlign(e,v){ e.preventDefault(); document.getElementById('editor-field').style.alignItems=v; }
         function setBarColor(c){ currentBarColor=c; }
         function deleteEvent(){ events=events.filter(i=>i.id!==editingId); localStorage.setItem('my_calendar_events',JSON.stringify(events)); closeModal(); renderCalendar(); }
