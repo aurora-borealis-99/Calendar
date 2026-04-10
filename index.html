@@ -5,68 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 1. 样式 100% 继承自你的源码 */
+        /* 这里 100% 复制了你发给我的原版 CSS */
         #bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fdf6e3; background-size: cover; background-position: center; z-index: -1; transition: 0.5s; }
-        body { margin: 0; padding: 10px 4px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; box-sizing: border-box; overflow-x: hidden; }
-        
-        /* 修复手机溢出问题 */
-        .calendar-box { background: white; width: 100%; max-width: 1000px; padding: 10px 5px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; box-sizing: border-box; display: flex; flex-direction: column; }
-        
+        body { margin: 0; padding: 10px 0; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; box-sizing: border-box; }
+        .calendar-box { background: white; width: 96vw; max-width: 1000px; padding: 12px 8px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
         .has-bg .calendar-box { background: rgba(255, 255, 255, 0.82); }
         .has-bg .cell, .has-bg .empty-cell { background: rgba(255, 255, 255, 0.2) !important; border-color: rgba(238, 238, 238, 0.4) !important; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 15px; }
         .title { font-size: 16px; color: #4a5568; font-weight: bold; cursor: pointer; border-bottom: 1px dashed #cbd5e0; }
         .btn { cursor: pointer; border: none; background: #f0f2f5; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .week-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #a0aec0; font-size: 10px; margin-bottom: 5px; }
-        .date-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(80px, auto); border: 1px solid #eee; width: 100%; }
-        .cell, .empty-cell { background: white; padding: 2px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; box-sizing: border-box; min-height: 80px; }
+        .date-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(90px, auto); border: 1px solid #eee; width: 100%; }
+        .cell, .empty-cell { background: white; padding: 2px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; box-sizing: border-box; }
         .cell { cursor: pointer; position: relative; }
         .selected { background-color: #ebf8ff !important; border: 1.5px solid #4299e1 !important; z-index: 5; }
         .date-row { display: flex; align-items: baseline; gap: 3px; height: 18px; pointer-events: none; }
         .s { font-size: 14px; color: #2d3748; font-weight: bold; }
         .l { font-size: 9px; color: #a0aec0; transform: scale(0.85); transform-origin: left; }
-        
-        #event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(80px, auto); }
+        #event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(90px, auto); }
         .event-bar { position: relative; font-size: 11px; padding: 4px; border-radius: 4px; margin: 22px 2px 2px 2px; z-index: 10; pointer-events: auto; cursor: pointer; display: flex !important; flex-direction: column; overflow: hidden; box-sizing: border-box; }
         
-        /* 年视图布局修复 */
-        #yearView { display: none; padding: 5px; grid-template-columns: repeat(1, 1fr); gap: 15px; width: 100%; box-sizing: border-box; }
-        @media(min-width: 600px) { #yearView { grid-template-columns: repeat(3, 1fr); } }
-        .year-month-card { border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px; background: #fafafa; }
-        .ym-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
-        .ym-day { font-size: 8px; text-align: center; height: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .dot-mark { width: 3px; height: 3px; background: #4fd1c5; border-radius: 50%; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+        /* 全年模式布局恢复 */
+        #yearView { display: none; padding: 5px; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; width: 100%; box-sizing: border-box; }
+        .year-month-card { border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px; cursor: pointer; background: #fafafa; box-sizing: border-box; }
+        .ym-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-top: 4px; }
+        .ym-day { font-size: 8px; text-align: center; color: #a0aec0; height: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .dot-mark { width: 2.5px; height: 2.5px; background: #4fd1c5; border-radius: 50%; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); }
 
-        /* 弹窗与工具栏 */
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
-        #editor-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 15px; border-radius: 12px; z-index: 1000; width: 92%; max-width: 400px; box-sizing: border-box; }
-        .tool-group { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
-        .tool-btn { background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
-        .dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
-        #editor-field { width: 100%; min-height: 100px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 10px 0; outline: none; }
-        .footer-copy { text-align: center; font-size: 10px; color: #a0aec0; margin-top: 15px; }
+        /* 弹窗样式 */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
+        #editor-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 12px; border-radius: 12px; z-index: 1000; width: 92%; max-width: 420px; box-sizing: border-box; }
+        #editor-field { width: 100%; min-height: 120px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 14px; outline: none; display: flex; flex-direction: column; }
     </style>
 </head>
 <body id="body-tag">
     <div id="bg-layer"></div>
     <div id="modal-overlay" onclick="closeModal()"></div>
-    
     <div id="editor-modal">
-        <div style="font-size:12px; margin-bottom:10px;">日期范围: <select id="startDaySelect"></select> 至 <select id="endDaySelect"></select> 日</div>
-        <div class="tool-group">
-            <button class="tool-btn" onclick="exec('bold')">B</button>
-            <button class="tool-btn" onclick="exec('underline')">U</button>
-            <div class="dot" style="background:#e53e3e" onclick="execColor('#e53e3e')"></div>
-            <div class="dot" style="background:#3182ce" onclick="execColor('#3182ce')"></div>
-            <div class="dot" style="background:#38a169" onclick="execColor('#38a169')"></div>
-        </div>
-        <div class="tool-group">
-            <button class="tool-btn" onclick="setStyle('fontSize','14px')">小</button>
-            <button class="tool-btn" onclick="setStyle('fontSize','20px')">中</button>
-            <button class="tool-btn" onclick="setStyle('fontSize','30px')">大</button>
+        <div style="font-size:12px; margin-bottom:8px;">
+            范围: <select id="startDaySelect"></select> - <select id="endDaySelect"></select> 日
         </div>
         <div id="editor-field" contenteditable="true"></div>
-        <div style="display:flex; justify-content: space-between; align-items: center;">
+        <div style="display:flex; justify-content: space-between; align-items: center; border-top: 1px solid #eee; padding-top: 10px;">
             <button id="deleteBtn" style="color:red; background:none; border:none; cursor:pointer;" onclick="deleteEvent()">删除</button>
             <button style="background:#4fd1c5; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;" onclick="saveEvent()">保存同步</button>
         </div>
@@ -85,8 +65,8 @@
                 <div id="event-layer"></div>
             </div>
         </div>
-        <div id="yearView" class="ym-grid" style="display:none; grid-template-columns: repeat(1, 1fr); gap:10px;"></div>
-        <div class="footer-copy">© 2026 🤿宇宙级潜水员🐟</div>
+        <div id="yearView"></div>
+        <div style="text-align: center; font-size: 10px; color: #a0aec0; margin-top: 15px;">© 2026 🤿宇宙级潜水员🐟</div>
     </div>
 
     <script>
@@ -96,17 +76,18 @@
 
         let currentDate = new Date(), viewMode = 'month', selection = [], events = [], isAdmin = false, clickCount = 0, editingId = null;
 
-        async function init() {
+        async function sync() {
             const { data } = await _db.from('events').select('*');
             events = data || [];
             renderCalendar();
+            if(viewMode === 'year') renderYear();
         }
 
-        // 连点标题 5 次解锁权限
+        // 解锁管理员：点击年月 5 次
         document.getElementById('monthDisplay').addEventListener('click', () => {
             clickCount++;
             if (clickCount >= 5) {
-                if (prompt("输入暗号") === "2026") { isAdmin = true; alert("管理员模式解锁"); }
+                if (prompt("暗号") === "2026") { isAdmin = true; alert("解锁成功"); }
                 clickCount = 0;
             }
         });
@@ -114,7 +95,6 @@
         function renderCalendar() {
             const grid = document.getElementById('dateGrid'), layer = document.getElementById('event-layer');
             grid.innerHTML = ''; layer.innerHTML = '';
-            
             const y = currentDate.getFullYear(), m = currentDate.getMonth();
             document.getElementById('monthDisplay').innerText = `${y}年 ${m+1}月`;
             
@@ -125,30 +105,24 @@
             for (let d = 1; d <= dInM; d++) {
                 const dateObj = new Date(y, m, d);
                 const lunar = new Intl.DateTimeFormat('zh-u-ca-chinese', {day:'numeric'}).format(dateObj);
-                
                 const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.id = `cell-${d}`;
+                cell.className = 'cell'; cell.id = `cell-${d}`;
                 cell.onclick = () => handleCellClick(d);
                 cell.innerHTML = `<div class="date-row"><span class="s">${d}</span><span class="l">${lunar}</span></div>`;
                 grid.appendChild(cell);
                 dateMap[d] = { row: Math.floor((first+d-1)/7)+1, col: ((first+d-1)%7)+1 };
             }
-
-            // 补全末尾空格
-            const total = first + dInM;
-            const remain = (7 - (total % 7)) % 7;
+            const remain = (7 - ((first + dInM) % 7)) % 7;
             for (let i = 0; i < remain; i++) grid.innerHTML += '<div class="empty-cell"></div>';
 
-            // 渲染记录条
             events.filter(ev => ev.year === y && ev.month === m).forEach(ev => {
+                if(!dateMap[ev.start] || !dateMap[ev.end]) return;
                 for(let r = dateMap[ev.start].row; r <= dateMap[ev.end].row; r++){
                     const sC = (r === dateMap[ev.start].row) ? dateMap[ev.start].col : 1;
                     const eC = (r === dateMap[ev.end].row) ? dateMap[ev.end].col : 7;
                     const bar = document.createElement('div');
                     bar.className = 'event-bar';
-                    bar.style.gridColumn = `${sC}/${eC+1}`;
-                    bar.style.gridRow = r;
+                    bar.style.gridColumn = `${sC}/${eC+1}`; bar.style.gridRow = r;
                     bar.style.backgroundColor = ev.barColor || '#B2F2BB';
                     if(r === dateMap[ev.start].row) bar.innerHTML = ev.text;
                     bar.onclick = (e) => { e.stopPropagation(); openEditModal(ev.id); };
@@ -162,8 +136,7 @@
                 selection.push(d);
                 document.getElementById(`cell-${d}`).classList.add('selected');
             } else {
-                selection.push(d);
-                const s = Math.min(...selection), e = Math.max(...selection);
+                const s = Math.min(selection[0], d), e = Math.max(selection[0], d);
                 openModal(s, e);
             }
         }
@@ -171,14 +144,15 @@
         function openModal(s, e) {
             if(!isAdmin) return alert("请先验证身份");
             editingId = null;
-            document.getElementById('deleteBtn').style.display = 'none';
             initDP(s, e);
+            document.getElementById('editor-field').innerHTML = '';
+            document.getElementById('deleteBtn').style.display = 'none';
             document.getElementById('modal-overlay').style.display = 'block';
             document.getElementById('editor-modal').style.display = 'block';
         }
 
         function openEditModal(id) {
-            if(!isAdmin) return alert("请先验证身份");
+            if(!isAdmin) return alert("验证身份后可修改");
             const ev = events.find(i => i.id === id);
             editingId = id;
             initDP(ev.start, ev.end);
@@ -194,15 +168,16 @@
                 start: parseInt(document.getElementById('startDaySelect').value),
                 end: parseInt(document.getElementById('endDaySelect').value),
                 year: currentDate.getFullYear(),
-                month: currentDate.getMonth()
+                month: currentDate.getMonth(),
+                barColor: '#B2F2BB'
             };
             if(editingId) await _db.from('events').update(data).eq('id', editingId);
             else await _db.from('events').insert([{ id: Date.now(), ...data }]);
-            closeModal(); init();
+            closeModal(); sync();
         }
 
         async function deleteEvent() {
-            if(confirm("确定删除?")) { await _db.from('events').delete().eq('id', editingId); closeModal(); init(); }
+            if(confirm("确定删除?")) { await _db.from('events').delete().eq('id', editingId); closeModal(); sync(); }
         }
 
         function initDP(s, e) {
@@ -221,9 +196,11 @@
 
         function renderYear() {
             const yv = document.getElementById('yearView'); yv.innerHTML = '';
+            const y = currentDate.getFullYear();
             for(let m=0; m<12; m++) {
                 const card = document.createElement('div'); card.className = 'year-month-card';
-                card.innerHTML = `<div style="font-weight:bold">${m+1}月</div>`;
+                card.onclick = () => { currentDate.setMonth(m); toggleView(); };
+                card.innerHTML = `<div style="font-size:11px;font-weight:bold">${m+1}月</div>`;
                 yv.appendChild(card);
             }
         }
@@ -235,12 +212,8 @@
             document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
         }
 
-        function changeMonth(o) { currentDate.setMonth(currentDate.getMonth()+o); renderCalendar(); }
-        function exec(c) { document.execCommand(c, false, null); }
-        function execColor(v) { document.execCommand('foreColor', false, v); }
-        function setStyle(p, v) { const s = document.createElement('span'); s.style[p] = v; window.getSelection().getRangeAt(0).wrapAll(s); }
-
-        init();
+        function changeMonth(o) { currentDate.setMonth(currentDate.getMonth()+o); sync(); }
+        sync();
     </script>
 </body>
 </html>
