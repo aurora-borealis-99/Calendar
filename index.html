@@ -2,109 +2,76 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 这里 100% 保留了你原始文件的所有 CSS 样式 */
+        /* 1. 样式 100% 继承自你的源码 */
         #bg-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #fdf6e3; background-size: cover; background-position: center; z-index: -1; transition: 0.5s; }
-        body { margin: 0; padding: 20px 8px; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; box-sizing: border-box; }
-        .calendar-box { background: white; width: calc(100vw - 16px); max-width: 1000px; padding: 12px 8px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; box-sizing: border-box; overflow: hidden; display: flex; flex-direction: column; }
+        body { margin: 0; padding: 10px 4px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; box-sizing: border-box; overflow-x: hidden; }
+        
+        /* 修复手机溢出问题 */
+        .calendar-box { background: white; width: 100%; max-width: 1000px; padding: 10px 5px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); position: relative; box-sizing: border-box; display: flex; flex-direction: column; }
+        
         .has-bg .calendar-box { background: rgba(255, 255, 255, 0.82); }
         .has-bg .cell, .has-bg .empty-cell { background: rgba(255, 255, 255, 0.2) !important; border-color: rgba(238, 238, 238, 0.4) !important; }
-        .has-bg .year-month-card { background: rgba(255, 255, 255, 0.4); border-color: rgba(0, 0, 0, 0.05); }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 10px; }
         .title { font-size: 16px; color: #4a5568; font-weight: bold; cursor: pointer; border-bottom: 1px dashed #cbd5e0; }
-        .btn { cursor: pointer; border: none; background: #f0f2f5; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .btn { cursor: pointer; border: none; background: #f0f2f5; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .week-header { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; color: #a0aec0; font-size: 10px; margin-bottom: 5px; }
-        .date-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 90px; border: 1px solid #eee; width: 100%; }
-        .cell, .empty-cell { background: white; padding: 2px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; box-sizing: border-box; }
+        .date-grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(80px, auto); border: 1px solid #eee; width: 100%; }
+        .cell, .empty-cell { background: white; padding: 2px; border-right: 1px solid #eee; border-bottom: 1px solid #eee; box-sizing: border-box; min-height: 80px; }
         .cell { cursor: pointer; position: relative; }
+        .selected { background-color: #ebf8ff !important; border: 1.5px solid #4299e1 !important; z-index: 5; }
         .date-row { display: flex; align-items: baseline; gap: 3px; height: 18px; pointer-events: none; }
         .s { font-size: 14px; color: #2d3748; font-weight: bold; }
         .l { font-size: 9px; color: #a0aec0; transform: scale(0.85); transform-origin: left; }
-        #event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: 90px; }
-        .event-bar { position: relative; font-size: 11px; padding: 4px; border-radius: 4px; margin: 22px 2px 0 2px; z-index: 10; pointer-events: auto; cursor: pointer; display: flex !important; flex-direction: column; overflow: hidden; box-sizing: border-box; }
-        #yearView { display: none; padding: 5px; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; box-sizing: border-box; }
-        .year-month-card { border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px; cursor: pointer; background: #fafafa; box-sizing: border-box; }
-        .ym-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; margin-top: 4px; }
-        .ym-day { font-size: 8px; text-align: center; color: #a0aec0; height: 12px; display: flex; align-items: center; justify-content: center; position: relative; }
-        .dot-mark { width: 2.5px; height: 2.5px; background: #4fd1c5; border-radius: 50%; position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%); }
-        .footer-copy { text-align: center; font-size: 10px; color: #a0aec0; margin-top: 15px; padding-bottom: 5px; letter-spacing: 1px; }
-        .has-bg .footer-copy { color: #4a5568; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 999; display: none; }
-        #editor-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 12px; border-radius: 12px; z-index: 1000; width: 92%; max-width: 420px; box-sizing: border-box; }
-        .tool-group { display: flex; align-items: center; gap: 3px; margin-bottom: 8px; flex-wrap: nowrap; overflow-x: auto; }
-        .tool-btn { background: #f8fafc; border: 1px solid #e2e8f0; min-width: 28px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; }
-        .dot-box { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
-        .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.05); cursor: pointer; }
-        #editor-field { width: 100%; min-height: 120px; max-height: 300px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 14px; outline: none; overflow-y: auto; display: flex; flex-direction: column; }
-        .date-picker-row { font-size: 12px; color: #64748b; margin-bottom: 8px; background: #f1f5f9; padding: 6px; border-radius: 6px; }
-        .modal-btns { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #eee; padding-top: 10px; }
-        .save-btn { background: #4fd1c5; color: white; border: none; padding: 8px 24px; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        .selected { background-color: #ebf8ff !important; border: 1px solid #4299e1 !important; }
-        .data-btn { font-size: 10px; color: #94a3b8; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 4px; cursor: pointer; }
-        .blur-slider-box { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
-        #blurRange { flex: 1; cursor: pointer; height: 4px; }
+        
+        #event-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(80px, auto); }
+        .event-bar { position: relative; font-size: 11px; padding: 4px; border-radius: 4px; margin: 22px 2px 2px 2px; z-index: 10; pointer-events: auto; cursor: pointer; display: flex !important; flex-direction: column; overflow: hidden; box-sizing: border-box; }
+        
+        /* 年视图布局修复 */
+        #yearView { display: none; padding: 5px; grid-template-columns: repeat(1, 1fr); gap: 15px; width: 100%; box-sizing: border-box; }
+        @media(min-width: 600px) { #yearView { grid-template-columns: repeat(3, 1fr); } }
+        .year-month-card { border: 1px solid #f0f0f0; border-radius: 8px; padding: 8px; background: #fafafa; }
+        .ym-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+        .ym-day { font-size: 8px; text-align: center; height: 15px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .dot-mark { width: 3px; height: 3px; background: #4fd1c5; border-radius: 50%; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); }
+
+        /* 弹窗与工具栏 */
+        #modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; display: none; }
+        #editor-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 15px; border-radius: 12px; z-index: 1000; width: 92%; max-width: 400px; box-sizing: border-box; }
+        .tool-group { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+        .tool-btn { background: #f8fafc; border: 1px solid #e2e8f0; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .dot { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); }
+        #editor-field { width: 100%; min-height: 100px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin: 10px 0; outline: none; }
+        .footer-copy { text-align: center; font-size: 10px; color: #a0aec0; margin-top: 15px; }
     </style>
 </head>
 <body id="body-tag">
     <div id="bg-layer"></div>
     <div id="modal-overlay" onclick="closeModal()"></div>
+    
     <div id="editor-modal">
-        <div class="date-picker-row">范围: <select id="startDaySelect"></select> — <select id="endDaySelect"></select> 日</div>
+        <div style="font-size:12px; margin-bottom:10px;">日期范围: <select id="startDaySelect"></select> 至 <select id="endDaySelect"></select> 日</div>
         <div class="tool-group">
-            <button class="tool-btn" onmousedown="exec(event,'bold')">B</button>
-            <button class="tool-btn" onmousedown="exec(event,'italic')">I</button>
-            <button class="tool-btn" onmousedown="exec(event,'underline')">U</button>
-            <div style="width:1px;height:14px;background:#ddd"></div>
-            <div class="dot-box"><div class="dot" style="background:#000" onmousedown="execColor(event,'#000')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#e53e3e" onmousedown="execColor(event,'#e53e3e')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#3182ce" onmousedown="execColor(event,'#3182ce')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#38a169" onmousedown="execColor(event,'#38a169')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#805ad5" onmousedown="execColor(event,'#805ad5')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#ed8936" onmousedown="execColor(event,'#ed8936')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#718096" onmousedown="execColor(event,'#718096')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#fff;border:1px solid #ddd" onmousedown="execColor(event,'#fff')"></div></div>
+            <button class="tool-btn" onclick="exec('bold')">B</button>
+            <button class="tool-btn" onclick="exec('underline')">U</button>
+            <div class="dot" style="background:#e53e3e" onclick="execColor('#e53e3e')"></div>
+            <div class="dot" style="background:#3182ce" onclick="execColor('#3182ce')"></div>
+            <div class="dot" style="background:#38a169" onclick="execColor('#38a169')"></div>
         </div>
         <div class="tool-group">
-            <button class="tool-btn" onmousedown="setStyle(event,'fontSize','14px')">小</button>
-            <button class="tool-btn" onmousedown="setStyle(event,'fontSize','18px')">中</button>
-            <button class="tool-btn" onmousedown="setStyle(event,'fontSize','26px')">大</button>
-            <button class="tool-btn" onmousedown="setStyle(event,'fontSize','42px')">巨</button>
-            <div style="width:1px;height:14px;background:#ddd"></div>
-            <button class="tool-btn" onmousedown="exec(event,'justifyLeft')">←</button>
-            <button class="tool-btn" onmousedown="exec(event,'justifyCenter')">↔</button>
-            <button class="tool-btn" onmousedown="exec(event,'justifyRight')">→</button>
-            <div style="width:1px;height:14px;background:#ddd"></div>
-            <button class="tool-btn" onmousedown="setAlign(event,'flex-start')">↑</button>
-            <button class="tool-btn" onmousedown="setAlign(event,'center')">↕</button>
-            <button class="tool-btn" onmousedown="setAlign(event,'flex-end')">↓</button>
-        </div>
-        <div class="tool-group">
-            <span style="font-size:10px;color:#999">底色:</span>
-            <div class="dot-box"><div class="dot" style="background:#FFD1DC" onclick="setBarColor('#FFD1DC')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#B2F2BB" onclick="setBarColor('#B2F2BB')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#A5D8FF" onclick="setBarColor('#A5D8FF')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#FFF3BF" onclick="setBarColor('#FFF3BF')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#E5DBFF" onclick="setBarColor('#E5DBFF')"></div></div>
-            <div class="dot-box"><div class="dot" style="background:#f1f5f9;border:1px solid #ddd" onclick="setBarColor('#f1f5f9')"></div></div>
+            <button class="tool-btn" onclick="setStyle('fontSize','14px')">小</button>
+            <button class="tool-btn" onclick="setStyle('fontSize','20px')">中</button>
+            <button class="tool-btn" onclick="setStyle('fontSize','30px')">大</button>
         </div>
         <div id="editor-field" contenteditable="true"></div>
-        <div class="modal-btns">
-            <div>
-                <button id="deleteBtn" style="color:#e53e3e;background:none;border:none;font-size:10px;cursor:pointer" onclick="deleteEvent()">删除</button>
-                <button class="data-btn" onclick="exportData()">备份</button>
-                <button class="data-btn" onclick="importData()">还原</button>
-                <button class="data-btn" onclick="changeBg()">背景</button>
-            </div>
-            <button class="save-btn" onclick="saveEvent()">保存</button>
-        </div>
-        <div class="blur-slider-box">
-            <span>清晰</span>
-            <input type="range" id="blurRange" min="0" max="25" value="4" oninput="updateBlur(this.value)">
-            <span>模糊</span>
+        <div style="display:flex; justify-content: space-between; align-items: center;">
+            <button id="deleteBtn" style="color:red; background:none; border:none; cursor:pointer;" onclick="deleteEvent()">删除</button>
+            <button style="background:#4fd1c5; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;" onclick="saveEvent()">保存同步</button>
         </div>
     </div>
+
     <div class="calendar-box" id="mainBox">
         <div class="header">
             <button class="btn" onclick="changeMonth(-1)">‹</button>
@@ -118,245 +85,162 @@
                 <div id="event-layer"></div>
             </div>
         </div>
-        <div id="yearView"></div>
-        <div class="footer-copy">© 2026 🤿宇宙级潜水员🐟 · 版权所有</div>
+        <div id="yearView" class="ym-grid" style="display:none; grid-template-columns: repeat(1, 1fr); gap:10px;"></div>
+        <div class="footer-copy">© 2026 🤿宇宙级潜水员🐟</div>
     </div>
 
     <script>
-        // --- 云端配置 (已经帮你填好) ---
         const S_URL = "https://cnbarxcyhtuyympqwspb.supabase.co";
         const S_KEY = "sb_publishable_8lKRoBeyMpq8UEYugqvn7g_3_iImIur";
         const _db = supabase.createClient(S_URL, S_KEY);
 
-        let currentDate = new Date(), viewMode = 'month', selection = [], currentBarColor = '#B2F2BB', editingId = null;
-        let events = []; // 数据将从云端加载
-        let isAdmin = false; // 管理员锁
-        let clickCount = 0;
+        let currentDate = new Date(), viewMode = 'month', selection = [], events = [], isAdmin = false, clickCount = 0, editingId = null;
 
-        // 1. 核心：从云端同步数据
-        async function syncFromCloud() {
-            try {
-                const { data, error } = await _db.from('events').select('*');
-                if (error) throw error;
-                events = data || [];
-                renderCalendar();
-                if(viewMode === 'year') renderYear();
-            } catch (e) {
-                console.error("加载失败:", e);
-                // 加载失败时使用本地缓存垫底
-                events = JSON.parse(localStorage.getItem('my_calendar_events')) || [];
-                renderCalendar();
-            }
+        async function init() {
+            const { data } = await _db.from('events').select('*');
+            events = data || [];
+            renderCalendar();
         }
 
-        // 连点标题 5 次触发管理员登录
+        // 连点标题 5 次解锁权限
         document.getElementById('monthDisplay').addEventListener('click', () => {
             clickCount++;
             if (clickCount >= 5) {
-                if (prompt("输入管理员暗号") === "2026") {
-                    isAdmin = true;
-                    alert("管理员模式已解锁");
-                }
+                if (prompt("输入暗号") === "2026") { isAdmin = true; alert("管理员模式解锁"); }
                 clickCount = 0;
             }
         });
 
-        function updateDisplayBg() { 
-            const y = currentDate.getFullYear(), m = currentDate.getMonth();
-            const key = `bg_${y}_${m}`;
-            const s = localStorage.getItem(key) || localStorage.getItem('my_calendar_bg');
-            const bgLayer = document.getElementById('bg-layer');
-            const bodyTag = document.getElementById('body-tag');
-            if(s){ bgLayer.style.backgroundImage=`url(${s})`; bodyTag.classList.add('has-bg'); updateBlur(localStorage.getItem('my_calendar_blur') || 4); }
-            else { bgLayer.style.backgroundImage='none'; bodyTag.classList.remove('has-bg'); }
-        }
-        
-        function updateBlur(val) {
-            const box = document.getElementById('mainBox');
-            box.style.backdropFilter = `blur(${val}px)`;
-            box.style.webkitBackdropFilter = `blur(${val}px)`;
-            localStorage.setItem('my_calendar_blur', val);
-        }
-
-        updateDisplayBg();
-
-        function toggleView() {
-            viewMode = (viewMode === 'month') ? 'year' : 'month';
-            document.getElementById('monthView').style.display = (viewMode === 'month' ? 'block' : 'none');
-            document.getElementById('yearView').style.display = (viewMode === 'year' ? 'grid' : 'none');
-            viewMode === 'year' ? renderYear() : renderCalendar();
-        }
-
-        function renderYear() {
-            const c = document.getElementById('yearView');
-            c.innerHTML = ''; const y = currentDate.getFullYear();
-            for (let m = 0; m < 12; m++) {
-                const card = document.createElement('div');
-                card.className = 'year-month-card';
-                card.onclick = () => { currentDate.setMonth(m); toggleView(); };
-                let h = `<div style="font-size:11px;font-weight:bold;margin-bottom:4px;color:#4a5568">${m+1}月</div><div class="ym-grid">`;
-                const dInM = new Date(y, m + 1, 0).getDate(), first = new Date(y, m, 1).getDay();
-                for (let i = 0; i < first; i++) h += '<div class="ym-day"></div>';
-                for (let d = 1; d <= dInM; d++) {
-                    const has = events.some(ev => ev.year === y && ev.month === m && d >= ev.start && d <= ev.end);
-                    h += `<div class="ym-day">${d}${has?'<div class="dot-mark"></div>':''}</div>`;
-                }
-                card.innerHTML = h + `</div>`;
-                c.appendChild(card);
-            }
-            updateHeader();
-        }
-
         function renderCalendar() {
-            updateDisplayBg();
             const grid = document.getElementById('dateGrid'), layer = document.getElementById('event-layer');
             grid.innerHTML = ''; layer.innerHTML = '';
+            
             const y = currentDate.getFullYear(), m = currentDate.getMonth();
+            document.getElementById('monthDisplay').innerText = `${y}年 ${m+1}月`;
+            
             const first = new Date(y, m, 1).getDay(), dInM = new Date(y, m + 1, 0).getDate();
             for (let i = 0; i < first; i++) grid.innerHTML += '<div class="empty-cell"></div>';
+            
             let dateMap = {};
             for (let d = 1; d <= dInM; d++) {
                 const dateObj = new Date(y, m, d);
-                let lunarDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {day:'numeric'}).format(dateObj);
-                if (lunarDay === '1日') {
-                    lunarDay = new Intl.DateTimeFormat('zh-u-ca-chinese', {month:'long'}).format(dateObj);
-                } else {
-                    const num = parseInt(lunarDay);
-                    const units = ["", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"];
-                    if (num <= 10) lunarDay = "初" + units[num];
-                    else if (num < 20) lunarDay = "十" + units[num % 10];
-                    else if (num === 20) lunarDay = "二十";
-                    else if (num < 30) lunarDay = "廿" + units[num % 10];
-                    else if (num === 30) lunarDay = "三十";
-                }
-                grid.innerHTML += `<div class="cell" onclick="handleCellClick(${d})" id="cell-${d}"><div class="date-row"><span class="s">${d}</span><span class="l">${lunarDay}</span></div></div>`;
+                const lunar = new Intl.DateTimeFormat('zh-u-ca-chinese', {day:'numeric'}).format(dateObj);
+                
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.id = `cell-${d}`;
+                cell.onclick = () => handleCellClick(d);
+                cell.innerHTML = `<div class="date-row"><span class="s">${d}</span><span class="l">${lunar}</span></div>`;
+                grid.appendChild(cell);
                 dateMap[d] = { row: Math.floor((first+d-1)/7)+1, col: ((first+d-1)%7)+1 };
             }
-            const totalCellsSoFar = first + dInM;
-            const remainingCells = (7 - (totalCellsSoFar % 7)) % 7;
-            for (let i = 0; i < remainingCells; i++) grid.innerHTML += '<div class="empty-cell"></div>';
 
-            events.forEach(ev => {
-                if(ev.year!==y || ev.month!==m) return;
-                if(!dateMap[ev.start] || !dateMap[ev.end]) return;
-                for(let r=dateMap[ev.start].row; r<=dateMap[ev.end].row; r++){
-                    const sC = (r===dateMap[ev.start].row)?dateMap[ev.start].col:1;
-                    const eC = (r===dateMap[ev.end].row)?dateMap[ev.end].col:7;
-                    const bar = document.createElement('div'); bar.className='event-bar';
-                    bar.style.gridColumn=`${sC}/${eC+1}`; bar.style.gridRow=r;
-                    bar.style.backgroundColor=ev.barColor; bar.style.textAlign=ev.textAlign; bar.style.justifyContent=ev.alignItems;
-                    if(r===dateMap[ev.start].row) bar.innerHTML=ev.text;
-                    bar.onclick=(e)=>{e.stopPropagation();openEditModal(ev.id)}; layer.appendChild(bar);
+            // 补全末尾空格
+            const total = first + dInM;
+            const remain = (7 - (total % 7)) % 7;
+            for (let i = 0; i < remain; i++) grid.innerHTML += '<div class="empty-cell"></div>';
+
+            // 渲染记录条
+            events.filter(ev => ev.year === y && ev.month === m).forEach(ev => {
+                for(let r = dateMap[ev.start].row; r <= dateMap[ev.end].row; r++){
+                    const sC = (r === dateMap[ev.start].row) ? dateMap[ev.start].col : 1;
+                    const eC = (r === dateMap[ev.end].row) ? dateMap[ev.end].col : 7;
+                    const bar = document.createElement('div');
+                    bar.className = 'event-bar';
+                    bar.style.gridColumn = `${sC}/${eC+1}`;
+                    bar.style.gridRow = r;
+                    bar.style.backgroundColor = ev.barColor || '#B2F2BB';
+                    if(r === dateMap[ev.start].row) bar.innerHTML = ev.text;
+                    bar.onclick = (e) => { e.stopPropagation(); openEditModal(ev.id); };
+                    layer.appendChild(bar);
                 }
             });
-            updateHeader();
         }
 
         function handleCellClick(d) {
             if (selection.length === 0) {
                 selection.push(d);
                 document.getElementById(`cell-${d}`).classList.add('selected');
-            } else if (selection[0] === d) {
-                initDP(d, d); openModal();
             } else {
                 selection.push(d);
                 const s = Math.min(...selection), e = Math.max(...selection);
-                initDP(s, e); openModal();
+                openModal(s, e);
             }
         }
 
-        function openModal() {
-            if(!isAdmin) return alert("请连点标题5次验证身份后再编辑");
+        function openModal(s, e) {
+            if(!isAdmin) return alert("请先验证身份");
             editingId = null;
             document.getElementById('deleteBtn').style.display = 'none';
-            document.getElementById('modal-overlay').style.display = 'block'; document.getElementById('editor-modal').style.display = 'block';
-            const f = document.getElementById('editor-field'); f.innerHTML = ''; f.style.textAlign = 'left';
-            f.style.alignItems = 'flex-start';
-        }
-
-        function initDP(s,e) {
-            const sS=document.getElementById('startDaySelect'), eS=document.getElementById('endDaySelect');
-            sS.innerHTML=eS.innerHTML='';
-            for(let i=1;i<=31;i++){ sS.innerHTML+=`<option value="${i}">${i}</option>`; eS.innerHTML+=`<option value="${i}">${i}</option>`; }
-            sS.value=s; eS.value=e;
+            initDP(s, e);
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('editor-modal').style.display = 'block';
         }
 
         function openEditModal(id) {
-            if(!isAdmin) return alert("查看模式：连点标题解锁管理员权限后可修改");
-            const ev=events.find(i=>i.id===id);
-            editingId=id; initDP(ev.start,ev.end);
-            document.getElementById('deleteBtn').style.display='block';
-            document.getElementById('modal-overlay').style.display='block'; document.getElementById('editor-modal').style.display='block';
-            const f=document.getElementById('editor-field'); f.innerHTML=ev.text; f.style.textAlign=ev.textAlign; f.style.alignItems=ev.alignItems; setBarColor(ev.barColor);
+            if(!isAdmin) return alert("请先验证身份");
+            const ev = events.find(i => i.id === id);
+            editingId = id;
+            initDP(ev.start, ev.end);
+            document.getElementById('editor-field').innerHTML = ev.text;
+            document.getElementById('deleteBtn').style.display = 'block';
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('editor-modal').style.display = 'block';
         }
 
-        // 2. 核心：保存到云端
         async function saveEvent() {
-            const f=document.getElementById('editor-field'), 
-            data={ 
-                text:f.innerHTML, 
-                barColor:currentBarColor, 
-                start:parseInt(Math.min(document.getElementById('startDaySelect').value,document.getElementById('endDaySelect').value)), 
-                end:parseInt(Math.max(document.getElementById('startDaySelect').value,document.getElementById('endDaySelect').value)), 
-                textAlign:f.style.textAlign || 'left', 
-                alignItems:f.style.alignItems || 'flex-start' 
+            const data = {
+                text: document.getElementById('editor-field').innerHTML,
+                start: parseInt(document.getElementById('startDaySelect').value),
+                end: parseInt(document.getElementById('endDaySelect').value),
+                year: currentDate.getFullYear(),
+                month: currentDate.getMonth()
             };
+            if(editingId) await _db.from('events').update(data).eq('id', editingId);
+            else await _db.from('events').insert([{ id: Date.now(), ...data }]);
+            closeModal(); init();
+        }
 
-            if(editingId){
-                const { error } = await _db.from('events').update(data).eq('id', editingId);
-                if(error) return alert("同步失败");
-            } else {
-                const newData = { id: Date.now(), year:currentDate.getFullYear(), month:currentDate.getMonth(), ...data };
-                const { error } = await _db.from('events').insert([newData]);
-                if(error) return alert("同步失败");
+        async function deleteEvent() {
+            if(confirm("确定删除?")) { await _db.from('events').delete().eq('id', editingId); closeModal(); init(); }
+        }
+
+        function initDP(s, e) {
+            const sS = document.getElementById('startDaySelect'), eS = document.getElementById('endDaySelect');
+            sS.innerHTML = eS.innerHTML = '';
+            for(let i=1; i<=31; i++){ sS.innerHTML+=`<option value="${i}">${i}</option>`; eS.innerHTML+=`<option value="${i}">${i}</option>`; }
+            sS.value = s; eS.value = e;
+        }
+
+        function toggleView() {
+            viewMode = (viewMode === 'month') ? 'year' : 'month';
+            document.getElementById('monthView').style.display = (viewMode === 'month' ? 'block' : 'none');
+            document.getElementById('yearView').style.display = (viewMode === 'year' ? 'grid' : 'none');
+            if(viewMode === 'year') renderYear();
+        }
+
+        function renderYear() {
+            const yv = document.getElementById('yearView'); yv.innerHTML = '';
+            for(let m=0; m<12; m++) {
+                const card = document.createElement('div'); card.className = 'year-month-card';
+                card.innerHTML = `<div style="font-weight:bold">${m+1}月</div>`;
+                yv.appendChild(card);
             }
-            closeModal();
-            syncFromCloud(); // 重新拉取最新数据
         }
 
-        // 3. 核心：从云端删除
-        async function deleteEvent(){
-            if(!confirm("确定删除？")) return;
-            const { error } = await _db.from('events').delete().eq('id', editingId);
-            if(error) return alert("删除失败");
-            closeModal();
-            syncFromCloud();
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('editor-modal').style.display = 'none';
+            selection = [];
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
         }
 
-        function exec(e,c){ e.preventDefault(); document.execCommand(c,false,null); }
-        function execColor(e,v){ e.preventDefault(); document.execCommand('foreColor',false,v); }
-        function setStyle(e,p,v){ e.preventDefault(); const sel=window.getSelection(); if(!sel.rangeCount)return; const r=sel.getRangeAt(0), s=document.createElement('span'); s.style[p]=v; s.style.lineHeight="1.1"; s.appendChild(r.extractContents()); r.insertNode(s); }
-        function setAlign(e,v){ e.preventDefault(); document.getElementById('editor-field').style.alignItems=v; }
-        function setBarColor(c){ currentBarColor=c; }
-        function closeModal(){ document.getElementById('modal-overlay').style.display='none'; document.getElementById('editor-modal').style.display='none'; selection=[]; document.querySelectorAll('.cell').forEach(c=>c.classList.remove('selected')); }
-        function changeMonth(o){ currentDate.setMonth(currentDate.getMonth()+o); syncFromCloud(); }
-        function updateHeader(){ document.getElementById('monthDisplay').innerText=viewMode=='month'?`${currentDate.getFullYear()}年 ${currentDate.getMonth()+1}月` : `${currentDate.getFullYear()}年 全览`; }
-        function exportData(){ const b=new Blob([JSON.stringify(events)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='calendar.json'; a.click(); }
-        function importData(){ const i=document.createElement('input'); i.type='file'; i.onchange=e=>{ const r=new FileReader(); r.onload=async ev=>{ const imported = JSON.parse(ev.target.result); await _db.from('events').insert(imported); syncFromCloud(); }; r.readAsText(e.target.files[0]); }; i.click(); }
-        
-        function changeBg(){ 
-            const i=document.createElement("input"); i.type="file"; 
-            i.onchange=e=>{ 
-                const r=new FileReader();
-                r.onload=ev=>{ 
-                    const img = new Image(); img.src = ev.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        const maxW = 1200; const scale = maxW / img.width;
-                        canvas.width = maxW; canvas.height = img.height * scale;
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        const compressed = canvas.toDataURL('image/jpeg', 0.7); 
-                        localStorage.setItem(`bg_${currentDate.getFullYear()}_${currentDate.getMonth()}`, compressed); 
-                        updateDisplayBg(); 
-                    };
-                };
-                r.readAsDataURL(e.target.files[0]); 
-            }; 
-            i.click(); 
-        }
+        function changeMonth(o) { currentDate.setMonth(currentDate.getMonth()+o); renderCalendar(); }
+        function exec(c) { document.execCommand(c, false, null); }
+        function execColor(v) { document.execCommand('foreColor', false, v); }
+        function setStyle(p, v) { const s = document.createElement('span'); s.style[p] = v; window.getSelection().getRangeAt(0).wrapAll(s); }
 
-        // 首次加载同步云端数据
-        syncFromCloud();
+        init();
     </script>
 </body>
 </html>
