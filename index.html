@@ -51,6 +51,22 @@
         
         .blur-slider-box { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #94a3b8; margin-top: 8px; border-top: 1px dashed #eee; padding-top: 8px; }
         #blurRange { flex: 1; cursor: pointer; height: 4px; }
+ /* 基础颜色：没有背景时，显示淡淡的灰色 */
+.footer-copy { 
+    text-align: center; 
+    font-size: 10px; 
+    color: #a0aec0; 
+    margin-top: 15px; 
+    padding-bottom: 5px; 
+    letter-spacing: 1px; 
+}
+
+/* 自适应：当你有背景图时，文字颜色会自动变深，以防看不清 */
+/* 你也可以把这里的颜色改成 #ffffff (纯白)，如果你的背景图很暗 */
+.has-bg .footer-copy { 
+    color: #4a5568; 
+    text-shadow: 0 0 5px rgba(255,255,255,0.5); /* 增加一点点白色背光，更清晰 */
+}
     </style>
 </head>
 <body id="body-tag">
